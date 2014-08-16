@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<script type="text/javascript" src="js/vendor/jquery-1.10.2.min.js"></script>
-		<script type="text/javascript" src="js/vendor/moment/moment.js"></script>
-		<script type="text/javascript" src="js/vendor/bootstrap/bootstrap.min.js"></script>
+		<script type="text/javascript" src="js/vendor/jquery-1.10.2.js"></script>
+		<script type="text/javascript" src="javascripts/vendor/moment/moment.js"></script>
+		<script type="text/javascript" src="javascripts/vendor/bootstrap/bootstrap.min.js"></script>	
 		<script type="text/javascript" src="js/vendor/ember/handlebars-1.1.2.js"></script>
 		<script type="text/javascript" src="js/vendor/ember/ember-1.6.1.js"></script>
 	  	<meta charset="utf-8">
@@ -26,25 +26,52 @@
 
 		<script type="text/x-handlebars" data-template-name="application">
 			<div class="row">
-				<div class="col-md-12">
-					<h1>Github Namshub</h1>
-					<hr />
+				<div class="col-md-12">					
 					{{outlet}}
 				</div>
 			</div>			
 		</script>
 
 		<script type="text/x-handlebars" data-template-name="index">
+			<h1>Github Namshub</h1>
+			<hr />
 			<p>This is the Github explorer</p>
 			<ul>
-				{{#each dev in controller}}
-					<li><a href="#">{{dev}}</a></li>
+				{{#each}}
+					<li>{{#link-to 'user' this}}{{name}}{{/link-to}}</li>
 				{{/each}}
 			</ul>
 			<p>
 				<button class="btn btn-success" {{action "clicked"}}>Click Me!</button>
 			</p>
 			<p>{{renderedOn}}</p>
+		</script>
+
+		<script type="text/x-handlebars" data-template-name="user">
+			<div class="row">
+				<div class="col-md-3">
+					<div class="well">
+						<p class="text-center">
+							{{#link-to 'user' this}}<img {{bind-attr src=avatar_url}} style="width:140px" />{{/link-to}}
+						</p>
+						<h4>{{#link-to 'user' this}}{{name}}{{/link-to}}</h4>
+						<p>
+							{{company}}<br />
+							{{location}}<br />
+							{{email}}<br />
+						</p>
+						<hr />
+						<table class="table table-striped">
+							<tr><td>Followers: </td><td>{{followers}}</td></tr>
+							<tr><td>Repositories: </td><td>{{public_repos}}</td></tr>
+							<tr><td>Gists: </td><td>{{public_gists}}</td></tr>
+						</table>
+						<p>
+							{{#link-to "index"}}Back{{/link-to}}
+						</p>
+					</div>
+				</div>
+			</div>			
 		</script>
 
 	</body>
@@ -55,14 +82,14 @@
 	    rootElement : "#github-app"
 	});      
 
+    var devs = [
+    	{ login: "richarddowner", name: "Richard Downer"},
+    	{ login: "tomdale", name: "Tom Dale"},
+    	{ login: "robconery", name: "Rob Conery"},
+    ];
+
     Github.IndexRoute = Ember.Route.extend({
-    	model : function() {
-    		return [
-    			"Richard Downer",
-    			"Tom Dale",
-    			"Rob Conery"
-    		];
-    	}    	
+    	model : function() { return devs }    	
     });
 
     Github.IndexController = Ember.ArrayController.extend({
@@ -73,6 +100,18 @@
     		clicked : function() {
     			alert("I've been clicked");
     		}	
-    	}    	
+		}    	
     });
+
+    Github.Router.map(function() {
+    	this.resource("user", { path : "/users/:login" });
+    });
+
+    Github.UserRoute = Ember.Route.extend({
+    	model : function(params) {    		
+    		return Ember.$.getJSON("https://api.github.com/users/" + params.login);
+    	}
+    });
+
+
 </script>
